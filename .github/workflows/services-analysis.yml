@@ -1,0 +1,30 @@
+name: Analysis Service CI (Hello World)
+
+on:
+  push:
+    paths:
+      - 'services/analysis-service/**'
+      - '.github/workflows/services-analysis.yml'
+  pull_request:
+    paths:
+      - 'services/analysis-service/**'
+      - '.github/workflows/services-analysis.yml'
+
+concurrency:
+  group: analysis-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hello:
+    name: Hello analysis-service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Say hello
+        shell: bash
+        run: |
+          echo "Hello from analysis-service"
+          echo "Repo: $GITHUB_REPOSITORY | SHA: $GITHUB_SHA"
+          echo "Listing contents of services/analysis-service:"
+          ls -la services/analysis-service || true

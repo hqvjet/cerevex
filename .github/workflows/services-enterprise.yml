@@ -1,0 +1,30 @@
+name: Enterprise Service CI (Hello World)
+
+on:
+  push:
+    paths:
+      - 'services/enterprise-service/**'
+      - '.github/workflows/services-enterprise.yml'
+  pull_request:
+    paths:
+      - 'services/enterprise-service/**'
+      - '.github/workflows/services-enterprise.yml'
+
+concurrency:
+  group: enterprise-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hello:
+    name: Hello enterprise-service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Say hello
+        shell: bash
+        run: |
+          echo "Hello from enterprise-service"
+          echo "Repo: $GITHUB_REPOSITORY | SHA: $GITHUB_SHA"
+          echo "Listing contents of services/enterprise-service:"
+          ls -la services/enterprise-service || true
