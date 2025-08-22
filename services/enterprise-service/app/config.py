@@ -30,8 +30,10 @@ class Settings:
     cookie_domain: Optional[str] = _env("COOKIE_DOMAIN")
     cookie_samesite: str = field(default_factory=lambda: _env("COOKIE_SAMESITE", "lax"))
 
-    # CORS
-    cors_allow_origins: List[str] = field(default_factory=lambda: [])
+    # CORS: set CORS_ALLOW_ORIGINS to comma-separated list or "*" for any
+    cors_allow_origins: List[str] = field(
+        default_factory=lambda: [o.strip() for o in (_env("CORS_ALLOW_ORIGINS", "")).split(",") if o.strip()]
+    )
 
     # Internal service URLs / timeouts
     user_service_url: str = field(default_factory=lambda: _env("USER_SERVICE_URL", "http://localhost:8000"))

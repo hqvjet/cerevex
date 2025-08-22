@@ -56,13 +56,18 @@ def create_app() -> FastAPI:
         lifespan=lifespan
     )
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_allow_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # Allow any origin by default (using regex so credentials can be used),
+    # otherwise fall back to configured explicit origins
+    cors_kwargs = {
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+    if not settings.cors_allow_origins or "*" in settings.cors_allow_origins:
+        cors_kwargs["allow_origin_regex"] = ".*"  # type: ignore[typeddict-item]
+    else:
+        cors_kwargs["allow_origins"] = settings.cors_allow_origins  # type: ignore[typeddict-item]
+    app.add_middleware(CORSMiddleware, **cors_kwargs)
 
     app.include_router(auth.router, prefix="/auth", tags=["auth"])
     app.include_router(users.router, prefix="/users", tags=["users"])

@@ -32,8 +32,10 @@ class Settings:
     cookie_domain: Optional[str] = _env("COOKIE_DOMAIN")
     cookie_samesite: str = field(default_factory=lambda: _env("COOKIE_SAMESITE", "lax"))
 
-    # CORS
-    cors_allow_origins: List[str] = field(default_factory=lambda: [])
+    # CORS: set CORS_ALLOW_ORIGINS to comma-separated list or "*" for any
+    cors_allow_origins: List[str] = field(
+        default_factory=lambda: [o.strip() for o in (_env("CORS_ALLOW_ORIGINS", "")).split(",") if o.strip()]
+    )
     # For local debugging only: also send token in X-Access-Token header
     debug_expose_token: bool = _env("DEBUG_EXPOSE_TOKEN", "false").lower() == "true"
 
