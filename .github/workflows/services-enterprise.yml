@@ -1,30 +1,56 @@
-name: Enterprise Service CI (Hello World)
+name: CICD For Enterprise Service
 
 on:
   push:
+    branches:
+      - develop
     paths:
       - 'services/enterprise-service/**'
-      - '.github/workflows/services-enterprise.yml'
-  pull_request:
-    paths:
-      - 'services/enterprise-service/**'
-      - '.github/workflows/services-enterprise.yml'
-
-concurrency:
-  group: enterprise-service-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  hello:
-    name: Hello enterprise-service
+  # Build Docker Image
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Say hello
-        shell: bash
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Build Docker Image
         run: |
-          echo "Hello from enterprise-service"
-          echo "Repo: $GITHUB_REPOSITORY | SHA: $GITHUB_SHA"
-          echo "Listing contents of services/enterprise-service:"
-          ls -la services/enterprise-service || true
+          docker build -t cerevex/enterprise_service services/enterprise-service
+          echo "Docker image 'cerevex/enterprise_service' built successfully."
+
+      - name: Push Enterprise Service Image into AWS ECR
+        run: |
+          aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
+          docker tag cerevex/enterprise_service:latest ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/enterprise_service:latest
+          docker push ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/enterprise_service:latest
+          echo "✅ Docker image 'cerevex/enterprise_service' pushed to ECR successfully."
+          sleep 10 # Wait for ECR to process the image
+
+      - name: Update Lambda Function Code from ECR
+        run: |
+          aws lambda update-function-code --function-name cerevex-enterprise-service --image-uri ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/enterprise_service:latest
+          echo "✅ Lambda function code updated successfully."
+
+      - name: Update Lambda Environment Variables (Non-AWS secrets only)
+        run: |
+          sleep 20 # Wait for the Lambda function to be updated
+          aws lambda update-function-configuration --function-name cerevex-enterprise-service --environment \
+          "Variables={DATABASE_URL=${{ secrets.DATABASE_URL }}}"
+          echo "✅ Lambda environment variables updated successfully."
+
+      - name: Notify Deployment Success
+        run: echo "Deployment of User Service completed successfully."
