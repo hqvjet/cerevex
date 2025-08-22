@@ -10,10 +10,10 @@ from database import get_db
 from models import Company, Product
 from schemas import CompanyCreate, CompanyOut, CompanyUpdate, ProductCreate, ProductOut, ProductUpdate
 from deps import get_current_user, require_company_user, CurrentUser
-from security import cookie_security, http_bearer, get_token_from_request
+from security import http_bearer, get_token_from_request
 from config import settings
 
-router = APIRouter(dependencies=[Depends(cookie_security), Depends(http_bearer)])
+router = APIRouter(dependencies=[Depends(http_bearer)])
 
 
 # --- Companies ---

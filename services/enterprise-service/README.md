@@ -3,7 +3,7 @@
 FastAPI service exposing authenticated CRUD for companies and products.
 
 Access rules:
-- All endpoints require authentication via JWT (cookie or Authorization: Bearer).
+- All endpoints require authentication via JWT via Authorization: Bearer only.
 - Only the create company endpoint is usable by any authenticated user (with or without company_id).
 - All other endpoints require the caller to have a company_id and operate only on their own company resources.
 
@@ -16,7 +16,7 @@ Database schema strictly follows the provided ERD:
 Ensure environment variables are set in `.env`:
 - `DATABASE_URL` (PostgreSQL recommended)
 - `JWT_SECRET_KEY`, `JWT_ALGORITHM` must match user-service
-- Cookie settings optional: `ACCESS_COOKIE_NAME`, `COOKIE_SECURE`, `COOKIE_DOMAIN`, `COOKIE_SAMESITE`
+- Cookie settings are ignored (legacy): `ACCESS_COOKIE_NAME`, `COOKIE_SECURE`, `COOKIE_DOMAIN`, `COOKIE_SAMESITE`
 
 Start server:
 

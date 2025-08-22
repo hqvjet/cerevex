@@ -1,26 +1,23 @@
 Cerevex User Service
 
 Endpoints
-- POST /auth/signup: create user, sets httpOnly cookie with access token. Response body is the user (no password). Optionally echoes token in X-Access-Token if DEBUG_EXPOSE_TOKEN=true.
-- POST /auth/signin: sign in with email/password, sets cookie as above.
-- POST /auth/signout: clears cookie and revokes session.
-- GET /users/me: current user. Locked (requires cookie or Bearer).
+- POST /auth/signup: create user. Optionally echoes token in X-Access-Token if DEBUG_EXPOSE_TOKEN=true.
+- POST /auth/signin: sign in with email/password, returns access token in response body.
+- POST /auth/signout: client-side only; discard Bearer token.
+- GET /users/me: current user. Locked (requires Authorization: Bearer).
 - GET /users: list users, admin only. Locked.
 - GET /users/{id}: get by id. Locked.
 - PATCH /users/{id}: update. Admin only. Locked.
 - DELETE /users/{id}: delete. Admin only. Locked.
 
 Security
-- JWT access token stored in httpOnly cookie named by ACCESS_COOKIE_NAME (default access_token). FastAPI security is wired so docs show lock icons (cookie + HTTP Bearer). 
+- Only Authorization: Bearer tokens are accepted. Cookies are not used. FastAPI security is wired so docs show lock icons (HTTP Bearer only).
 
 Env (.env in services/user-service)
 - DATABASE_URL=postgresql://...
 - JWT_SECRET_KEY=change-me
 - ACCESS_TOKEN_TTL_MIN=1440
-- ACCESS_COOKIE_NAME=access_token
-- COOKIE_SECURE=false
-- COOKIE_SAMESITE=lax
-- COOKIE_DOMAIN= (optional)
+- ACCESS_COOKIE_NAME, COOKIE_* are ignored (legacy). 
 - DEBUG_EXPOSE_TOKEN=false
 
 Run

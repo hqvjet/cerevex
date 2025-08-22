@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from schemas import UserOut, UserUpdate, SetCompanyRequest
-from security import cookie_security, get_token_from_request, decode_token_or_401, hash_password, http_bearer
+from security import get_token_from_request, decode_token_or_401, hash_password, http_bearer
 
 
 router = APIRouter()
@@ -30,7 +30,7 @@ def ensure_admin(user: User):
         raise HTTPException(status_code=403, detail="Admin role required")
 
 
-@router.get("/me", response_model=UserOut, summary="Get current user", dependencies=[Depends(cookie_security), Depends(http_bearer)])
+@router.get("/me", response_model=UserOut, summary="Get current user", dependencies=[Depends(http_bearer)])
 def get_me(user_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     user = db.get(User, user_id)
     if not user:
@@ -38,7 +38,7 @@ def get_me(user_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     return user
 
 
-@router.get("/", response_model=List[UserOut], summary="List users", dependencies=[Depends(cookie_security), Depends(http_bearer)])
+@router.get("/", response_model=List[UserOut], summary="List users", dependencies=[Depends(http_bearer)])
 def list_users(user_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     caller = db.get(User, user_id)
     if not caller:
@@ -47,7 +47,7 @@ def list_users(user_id: str = Depends(require_auth), db: Session = Depends(get_d
     return db.query(User).order_by(User.created_at.desc()).all()
 
 
-@router.get("/{user_id}", response_model=UserOut, summary="Get user by id", dependencies=[Depends(cookie_security), Depends(http_bearer)])
+@router.get("/{user_id}", response_model=UserOut, summary="Get user by id", dependencies=[Depends(http_bearer)])
 def get_user(user_id: str, _: str = Depends(require_auth), db: Session = Depends(get_db)):
     user = db.get(User, user_id)
     if not user:
@@ -55,7 +55,7 @@ def get_user(user_id: str, _: str = Depends(require_auth), db: Session = Depends
     return user
 
 
-@router.patch("/{user_id}", response_model=UserOut, summary="Update user", dependencies=[Depends(cookie_security), Depends(http_bearer)])
+@router.patch("/{user_id}", response_model=UserOut, summary="Update user", dependencies=[Depends(http_bearer)])
 def update_user(user_id: str, payload: UserUpdate, caller_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     caller = db.get(User, caller_id)
     ensure_admin(caller)
@@ -79,7 +79,7 @@ def update_user(user_id: str, payload: UserUpdate, caller_id: str = Depends(requ
     return user
 
 
-@router.delete("/{user_id}", response_model=None, status_code=204, summary="Delete user", dependencies=[Depends(cookie_security), Depends(http_bearer)])
+@router.delete("/{user_id}", response_model=None, status_code=204, summary="Delete user", dependencies=[Depends(http_bearer)])
 def delete_user(user_id: str, caller_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     caller = db.get(User, caller_id)
     ensure_admin(caller)
@@ -90,7 +90,7 @@ def delete_user(user_id: str, caller_id: str = Depends(require_auth), db: Sessio
     return None
 
 
-@router.post("/me/company", response_model=UserOut, summary="Set my company_id if not set", dependencies=[Depends(cookie_security), Depends(http_bearer)])
+@router.post("/me/company", response_model=UserOut, summary="Set my company_id if not set", dependencies=[Depends(http_bearer)])
 def set_my_company(payload: SetCompanyRequest, user_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     user = db.get(User, user_id)
     if not user:

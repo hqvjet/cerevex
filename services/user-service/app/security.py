@@ -5,7 +5,7 @@ from typing import Optional
 import uuid
 
 from fastapi import Depends, HTTPException, Request
-from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 
@@ -36,24 +36,17 @@ def create_access_token(sub: str, jti: Optional[str] = None, ttl_min: Optional[i
     return token, jti, expire
 
 
-# FastAPI security dependencies (shows the lock icon in docs)
-cookie_security = APIKeyCookie(name=settings.cookie_name, auto_error=False)
+# FastAPI security dependency for Bearer tokens only (shows the lock icon in docs)
 http_bearer = HTTPBearer(auto_error=False)
 
 
 def get_token_from_request(
     request: Request,
-    cookie_token: Optional[str] = Depends(cookie_security),
     bearer: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
 ) -> Optional[str]:
-    # Prefer cookie; fallback to Authorization: Bearer; allow X-Access-Token as a safe alternative header
-    if cookie_token:
-        return cookie_token
+    # Only accept Authorization: Bearer <token>
     if bearer and bearer.scheme.lower() == "bearer":
         return bearer.credentials
-    x_token = request.headers.get("x-access-token")
-    if x_token:
-        return x_token
     return None
 
 

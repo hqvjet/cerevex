@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from schemas import SignInRequest, UserCreate, UserOut, Message, AccessTokenResponse
-from security import create_access_token, hash_password, verify_password, cookie_security, http_bearer, get_token_from_request, decode_token_or_401
+from security import create_access_token, hash_password, verify_password, http_bearer, get_token_from_request, decode_token_or_401
 from config import settings
 
 
@@ -16,16 +16,8 @@ router = APIRouter()
 
 
 def set_auth_cookie(response: Response, token: str, expires: datetime):
-    response.set_cookie(
-        key=settings.cookie_name,
-        value=token,
-        httponly=True,
-        secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,
-        domain=settings.cookie_domain,
-        expires=int(expires.timestamp()),
-        path="/",
-    )
+    # Cookie-based auth removed; keep function for backward compat but no-op
+    return None
 
 
 @router.post("/signup", response_model=UserOut, summary="Sign up")
@@ -46,28 +38,20 @@ def signup(payload: UserCreate, response: Response, db: Session = Depends(get_db
 
     # Stateless: issue JWT without persisting a server-side session
     token, _jti, exp = create_access_token(sub=user.user_id)
-    set_auth_cookie(response, token, exp)
+    # Cookie removed; expose token only via response body and optional header
     if settings.debug_expose_token:
         response.headers["X-Access-Token"] = token
     return user
 
 
-@router.post("/signin", response_model=AccessTokenResponse, summary="Sign in (returns access token and sets HttpOnly cookie)", dependencies=[Depends(cookie_security), Depends(http_bearer)])
+@router.post("/signin", response_model=AccessTokenResponse, summary="Sign in (returns access token)", dependencies=[Depends(http_bearer)])
 def signin(payload: SignInRequest, response: Response, db: Session = Depends(get_db)):
-    """Authenticate user, set an HttpOnly secure cookie with the access token.
-
-    For security, the JSON body will not include the raw access token unless
-    `settings.debug_expose_token` is True. Clients should use the cookie for
-    subsequent requests (or Authorization: Bearer header).
-    """
+    """Authenticate user and return a JWT access token (Bearer only)."""
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token, _jti, exp = create_access_token(sub=user.user_id)
-    # Always set secure, HttpOnly cookie for browser clients
-    set_auth_cookie(response, token, exp)
-
     # Optionally expose token in a header for debugging
     if settings.debug_expose_token:
         response.headers["X-Access-Token"] = token
@@ -77,9 +61,7 @@ def signin(payload: SignInRequest, response: Response, db: Session = Depends(get
     return AccessTokenResponse(access_token=token, expires_at=exp)
 
 
-@router.post("/signout", response_model=Message, summary="Sign out", dependencies=[Depends(cookie_security)])
+@router.post("/signout", response_model=Message, summary="Sign out")
 def signout(response: Response, token: str | None = Depends(get_token_from_request)):
-    # Stateless signout: simply clear the cookie; JWT will expire naturally
-    # Clear cookie
-    response.delete_cookie(key=settings.cookie_name, domain=settings.cookie_domain, path="/")
+    # Stateless signout: clients should discard their Bearer token
     return Message(message="signed out")

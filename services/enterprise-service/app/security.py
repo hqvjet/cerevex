@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 from fastapi import Depends, HTTPException, Request
-from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt, JWTError
 
 from config import settings
 
 
-# Mirror user-service's cookie + bearer behavior
-cookie_security = APIKeyCookie(name=settings.cookie_name, auto_error=False)
+"""Bearer-only auth helpers for enterprise service."""
 http_bearer = HTTPBearer(auto_error=False)
 
 
-def get_token_from_request(request: Request, cookie_token: str | None = Depends(cookie_security), bearer: HTTPAuthorizationCredentials | None = Depends(http_bearer)) -> str | None:
-    if cookie_token:
-        return cookie_token
+def get_token_from_request(request: Request, bearer: HTTPAuthorizationCredentials | None = Depends(http_bearer)) -> str | None:
     if bearer and bearer.scheme.lower() == "bearer":
         return bearer.credentials
     return None
