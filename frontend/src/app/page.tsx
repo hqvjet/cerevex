@@ -15,6 +15,16 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function errorMessage(err: unknown): string {
+    if (err && typeof err === "object") {
+      const obj = err as { detail?: unknown; message?: unknown };
+      const detail = typeof obj.detail === "string" ? obj.detail : undefined;
+      const message = typeof obj.message === "string" ? obj.message : undefined;
+      return String(detail ?? message ?? "Đăng nhập thất bại");
+    }
+    return "Đăng nhập thất bại";
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -22,8 +32,8 @@ export default function Home() {
     try {
   await signin(email, password);
   router.push("/dashboard");
-    } catch (err: any) {
-      setError(String(err?.detail || err?.message || "Đăng nhập thất bại"));
+    } catch (err: unknown) {
+      setError(errorMessage(err));
     } finally {
       setLoading(false);
     }

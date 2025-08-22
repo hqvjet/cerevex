@@ -5,23 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { parseRoles, ROLES } from "@/lib/auth/roles";
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const pathname = usePathname();
-  const active = pathname === href;
-  return (
-    <Link
-      href={href}
-      className={
-        active
-          ? "text-blue-700 font-semibold"
-          : "text-slate-700 hover:text-blue-700"
-      }
-    >
-      {children}
-    </Link>
-  );
-}
-
 export default function Navbar() {
   const router = useRouter();
   const { status, user, signout } = useAuth();

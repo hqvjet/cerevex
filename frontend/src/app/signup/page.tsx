@@ -20,6 +20,16 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function errorMessage(err: unknown): string {
+    if (err && typeof err === "object") {
+      const obj = err as { detail?: unknown; message?: unknown };
+      const detail = typeof obj.detail === "string" ? obj.detail : undefined;
+      const message = typeof obj.message === "string" ? obj.message : undefined;
+      return String(detail ?? message ?? "Đăng ký thất bại");
+    }
+    return "Đăng ký thất bại";
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -31,9 +41,8 @@ export default function SignUp() {
     try {
       await signup(email, password);
       router.push("/signin");
-    } catch (err: any) {
-      const msg = err?.detail || err?.message || "Đăng ký thất bại";
-      setError(String(msg));
+    } catch (err: unknown) {
+      setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
