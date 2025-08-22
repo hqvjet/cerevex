@@ -41,12 +41,19 @@ cookie_security = APIKeyCookie(name=settings.cookie_name, auto_error=False)
 http_bearer = HTTPBearer(auto_error=False)
 
 
-def get_token_from_request(request: Request, cookie_token: Optional[str] = Depends(cookie_security), bearer: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer)) -> Optional[str]:
-    # Prefer cookie; fallback to Authorization: Bearer
+def get_token_from_request(
+    request: Request,
+    cookie_token: Optional[str] = Depends(cookie_security),
+    bearer: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
+) -> Optional[str]:
+    # Prefer cookie; fallback to Authorization: Bearer; allow X-Access-Token as a safe alternative header
     if cookie_token:
         return cookie_token
     if bearer and bearer.scheme.lower() == "bearer":
         return bearer.credentials
+    x_token = request.headers.get("x-access-token")
+    if x_token:
+        return x_token
     return None
 
 
