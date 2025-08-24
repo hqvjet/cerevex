@@ -13,13 +13,19 @@ class CommentsPayload(BaseModel):
     comments: List[Comment]
 
 
+class AnalyzedItem(BaseModel):
+    content: str
+    title: Optional[str] = None
+    label: str
+
+
 class FileAnalysisResult(BaseModel):
     total_rows: int
     with_title: int
     without_title: int
     avg_content_len: float
     label_distribution: Dict[str, int]
-    labels: List[str]
+    items: List[AnalyzedItem] = Field(default_factory=list)
 
 
 class CommentsAnalysisResult(BaseModel):

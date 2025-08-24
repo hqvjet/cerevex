@@ -53,13 +53,22 @@ async def analyze_files(files: List[UploadFile] = File(...), ai: AIClient = Depe
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="AI service returned mismatched labels length")
 
     dist = compute_label_distribution(labels)
+    # Pair items with labels so frontend can render tables per tab
+    items = []
+    for idx, (t, c) in enumerate(zip(titles, contents)):
+        items.append({
+            "content": c,
+            "title": t,
+            "label": labels[idx],
+        })
+
     result: FileAnalysisResult = FileAnalysisResult(
         total_rows=len(contents),
         with_title=sum(1 for t in titles if t),
         without_title=sum(1 for t in titles if not t),
         avg_content_len=avg_length(contents),
         label_distribution=dist,
-        labels=labels,
+        items=items,
     )
     return result
 
