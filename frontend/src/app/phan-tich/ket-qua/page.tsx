@@ -52,70 +52,15 @@ export default function KetQuaPage() {
   // ---- Rows: prefer server-provided items; fallback to deterministic samples
   type Row = { id: string; title: string; content: string; label: "positive" | "neutral" | "negative"; score?: number };
   const sampleRows = useMemo<Row[]>(() => {
-    if (!fileRes) return [];
-    // If backend provided raw items, map them with synthetic ids & scores
-    if (fileRes.items && fileRes.items.length > 0) {
-      return fileRes.items.map((it, i) => ({
-        id: `${"RVJAFX"[i % 5]}${1000 + ((i * 137) % 9000)}`,
-        title: it.title ?? "",
-        content: it.content,
-        label: (it.label?.toLowerCase?.() as Row["label"]) || "neutral",
-        score: 70 + (i % 25),
-      }));
-    }
-    const genId = (i: number) => {
-      const prefixes = ["RVJ", "AFX", "ZXC", "YUI", "QWE", "PLM"];
-      const num = 1000 + ((i * 137) % 9000);
-      return `${prefixes[i % prefixes.length]}-${num}`;
-    };
-    const pick = (arr: string[], i: number) => arr[i % arr.length];
-    const posTitles = [
-      "Hài lòng từ A đến Z",
-      "Trải nghiệm đáng nhớ",
-      "Dịch vụ tuyệt vời",
-      "Nhân viên thân thiện",
-      "Rất đáng để quay lại",
-    ];
-    const posContents = [
-      "Phòng rộng, view đẹp, nhân viên rất dễ thương",
-      "Giao hàng nhanh, đóng gói cẩn thận",
-      "Ứng dụng chạy mượt, tính năng hữu ích",
-      "Chăm sóc khách hàng nhiệt tình",
-      "Sản phẩm đúng mô tả, chất lượng tốt",
-    ];
-    const negTitles = [
-      "Dịch vụ chuyến bay",
-      "Trải nghiệm cần cải thiện",
-      "Chậm trễ không mong muốn",
-      "Chất lượng dưới kỳ vọng",
-      "Hỗ trợ chưa kịp thời",
-    ];
-    const negContents = [
-      "Delay 2 tiếng nhưng hoàn tiền gặp đôi, yếu lắm :3",
-      "Ship chậm và gói hàng móp nhẹ",
-      "Ứng dụng hay bị lỗi đăng nhập",
-      "Phản hồi hỗ trợ quá chậm",
-      "Hàng không đúng màu đã chọn",
-    ];
-    const neuTitles = [
-      "Thông tin tham khảo",
-      "Ghi chú chung",
-      "Đánh giá sơ bộ",
-      "Nhận xét ban đầu",
-      "Tổng quan sử dụng",
-    ];
-    const neuContents = [
-      "Tính năng ổn, cần thêm tùy chọn nâng cao",
-      "Đóng gói bình thường, giao đúng hẹn",
-      "Thiết kế ổn, màu sắc như hình",
-      "Hiệu năng đủ dùng, chưa thử lâu dài",
-      "Trải nghiệm bình thường, không có vấn đề lớn",
-    ];
-    const confRange = (label: string) =>
-      label === "positive" ? [82, 96] : label === "negative" ? [72, 90] : [60, 86];
-
-  return [] as Row[]; // Unused path since items are now required; kept for type safety
-    
+    if (!fileRes || !fileRes.items || fileRes.items.length === 0) return [];
+    // Map server-provided items
+    return fileRes.items.map((it, i) => ({
+      id: `${"RVJAFX"[i % 5]}${1000 + ((i * 137) % 9000)}`,
+      title: it.title ?? "",
+      content: it.content,
+      label: (it.label?.toLowerCase?.() as Row["label"]) || "neutral",
+      score: 70 + (i % 25),
+    }));
   }, [fileRes]);
 
   const [query, setQuery] = useState("");
@@ -280,7 +225,7 @@ export default function KetQuaPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {pageRows.map((r, i) => (
+                      {pageRows.map((r) => (
                         <tr key={r.id} className="border-t border-[#EEF4FF] text-sm">
                           <td className="px-4 py-3 font-medium text-slate-700">{r.id}</td>
                           <td className="px-4 py-3 text-slate-700">{r.title}</td>

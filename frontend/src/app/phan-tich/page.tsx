@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Protected from "@/components/auth/Protected";
 import { ROLES, hasAnyRole, parseRoles } from "@/lib/auth/roles";
@@ -32,7 +32,7 @@ export default function PhanTichPage() {
         sessionStorage.setItem("analysis:last:file", JSON.stringify(res));
       }
       router.push("/phan-tich/ket-qua");
-    } catch (e) {
+  } catch {
       setFileError("Không thể phân tích tệp. Vui lòng thử lại.");
     } finally {
       setFileLoading(false);
@@ -86,7 +86,11 @@ export default function PhanTichPage() {
                 <div className="mt-5 flex items-center justify-center gap-3">
                   <Button
                     variant="secondary"
-                    onClick={() => { setFiles(null); setFileError(null); fileInputRef.current && (fileInputRef.current.value = ""); }}
+                    onClick={() => {
+                      setFiles(null);
+                      setFileError(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
                   >
                     Hủy
                   </Button>
@@ -102,20 +106,40 @@ export default function PhanTichPage() {
       </section>
       <main className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md">
-            <div className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-green-100 text-green-700 text-xl">🙂</div>
-            <h3 className="font-semibold">Cảm xúc Tích Cực</h3>
-            <p className="mt-1 text-sm text-slate-600">Phát hiện cảm xúc tích cực, sự hài lòng và biểu hiện lạc quan trong nội dung.</p>
+          {/* Positive card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div className="mx-auto grid place-items-center">
+              <div className="grid place-items-center size-12 rounded-full border-4 border-blue-500/70 text-blue-600 text-2xl">🙂</div>
+              <div className="mt-3 h-0.5 w-24 rounded bg-green-400/80" />
+            </div>
+            <h3 className="mt-3 text-center font-semibold text-blue-800">Cảm xúc Tích Cực</h3>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              Phát hiện cảm xúc tích cực, sự hài lòng và những biểu hiện lạc quan trong nội dung.
+            </p>
           </div>
-          <div className="rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md">
-            <div className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-red-100 text-red-700 text-xl">🙁</div>
-            <h3 className="font-semibold">Cảm xúc Tiêu Cực</h3>
-            <p className="mt-1 text-sm text-slate-600">Nhận diện lời phàn nàn, phản hồi chỉ trích giúp bạn biết rõ vấn đề trọng tâm.</p>
+
+          {/* Negative card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div className="mx-auto grid place-items-center">
+              <div className="grid place-items-center size-12 rounded-full border-4 border-blue-500/70 text-blue-600 text-2xl">🙁</div>
+              <div className="mt-3 h-0.5 w-24 rounded bg-rose-400/80" />
+            </div>
+            <h3 className="mt-3 text-center font-semibold text-blue-800">Cảm xúc Tiêu Cực</h3>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              Nhận diện lời phàn nàn, phản hồi chỉ trích giúp bạn biết rõ vấn đề trọng tâm.
+            </p>
           </div>
-          <div className="rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md">
-            <div className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-slate-100 text-slate-700 text-xl">😐</div>
-            <h3 className="font-semibold">Cảm xúc Trung Lập</h3>
-            <p className="mt-1 text-sm text-slate-600">Thể hiện thông tin khách quan, ít thiên kiến để đánh giá bối cảnh chung.</p>
+
+          {/* Neutral card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div className="mx-auto grid place-items-center">
+              <div className="grid place-items-center size-12 rounded-full border-4 border-blue-500/70 text-blue-600 text-2xl">😐</div>
+              <div className="mt-3 h-0.5 w-24 rounded bg-slate-400/70" />
+            </div>
+            <h3 className="mt-3 text-center font-semibold text-blue-800">Cảm xúc Trung Lập</h3>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              Thể hiện thông tin khách quan, ít thiên kiến để đánh giá bối cảnh chung.
+            </p>
           </div>
         </div>
       </main>

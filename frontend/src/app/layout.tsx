@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/auth-context";
+import AuthGate from "../components/auth/AuthGate";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -26,6 +27,10 @@ export const metadata: Metadata = {
   title: "Cerevex — Trí tuệ cảm xúc cho ngành dịch vụ Việt",
   description:
     "Nền tảng phân tích cảm xúc tiếng Việt chính xác, nhanh và tiết kiệm cho doanh nghiệp dịch vụ.",
+  icons: {
+    icon: "/logo.ico",
+    shortcut: "/logo.ico",
+  },
 };
 
 export default function RootLayout({
@@ -39,7 +44,7 @@ export default function RootLayout({
   className={`${montserrat.variable} ${geistMono.variable} antialiased bg-white text-slate-900`}
       >
         <AuthProvider>
-          {children}
+          <AuthGate>{children}</AuthGate>
         </AuthProvider>
       </body>
     </html>
