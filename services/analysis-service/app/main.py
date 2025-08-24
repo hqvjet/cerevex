@@ -43,31 +43,18 @@ def create_app() -> FastAPI:
         middleware=middleware,
     )
 
-    # CORS configuration
-    origins_raw = (settings.cors_allow_origins or "").strip()
-    if origins_raw == "*" or origins_raw == "":
-        # Wildcard CORS must not set allow_credentials=True per spec
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=False,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+    # CORS configuration (aligned with user-service)
+    cors_kwargs = {
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+    origins = settings.cors_allow_origins
+    if not origins or "*" in origins:
+        cors_kwargs["allow_origin_regex"] = ".*"  # type: ignore[typeddict-item]
     else:
-        origins = [o.strip() for o in origins_raw.split(",") if o.strip()]
-        # Add localhost convenience if not provided
-        localhost = ["http://localhost", "http://127.0.0.1", "http://localhost:3000", "http://127.0.0.1:3000"]
-        for h in localhost:
-            if h not in origins:
-                origins.append(h)
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        cors_kwargs["allow_origins"] = origins  # type: ignore[typeddict-item]
+    app.add_middleware(CORSMiddleware, **cors_kwargs)
 
     app.include_router(analyze_router)
 
