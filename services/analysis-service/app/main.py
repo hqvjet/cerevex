@@ -11,7 +11,6 @@ import logging
 
 from config import get_settings
 from routers.analyze import router as analyze_router
-from routers.insights import router as insights_router
 from core.ai_client import get_ai_client
 
 load_dotenv()
@@ -59,7 +58,6 @@ def create_app() -> FastAPI:
     app.add_middleware(CORSMiddleware, **cors_kwargs)
 
     app.include_router(analyze_router)
-    app.include_router(insights_router)
 
     @app.get("/", tags=["health"])  # type: ignore[misc]
     def health() -> dict:
