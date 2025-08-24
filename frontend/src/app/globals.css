@@ -7,10 +7,11 @@
 
 /* Tailwind variables provided via CSS custom props; no @theme block for tool compatibility */
 
+/* Keep light theme by default, even if OS is dark */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #171717;
   }
 }
 

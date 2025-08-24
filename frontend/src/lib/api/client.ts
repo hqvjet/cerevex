@@ -22,9 +22,9 @@ export class ApiError extends Error {
   }
 }
 
-// Prefer direct calls to backend. Set NEXT_PUBLIC_API_PROXY=true to use Next.js API proxy.
-const useProxy = (process.env.NEXT_PUBLIC_API_PROXY ?? "false").toLowerCase() === "true";
+// Prefer direct calls to backend. Set NEXT_PUBLIC_API_PROXY=true to use Next.js API proxy explicitly.
 const directBase = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/?$/, "");
+const useProxy = ((process.env.NEXT_PUBLIC_API_PROXY ?? "false").toLowerCase()) === "true";
 const proxyBase = "/api"; // same-origin Next.js API routes
 
 function assertBaseUrl(): string {
@@ -93,3 +93,51 @@ export const http = {
 export function getApiBaseUrl() {
   return useProxy ? proxyBase : assertBaseUrl();
 }
+
+// Direct-only client that always uses NEXT_PUBLIC_API_URL, ignoring proxy
+function joinDirectUrl(path: string): string {
+  const root = assertBaseUrl();
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${root}${p}`;
+}
+
+async function requestDirect<TResponse, TBody = unknown>(
+  path: string,
+  opts: RequestOptions<TBody> = {}
+): Promise<TResponse> {
+  const url = joinDirectUrl(path);
+  const { method = "GET", body, headers, cache = "no-store", signal } = opts;
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  const { getToken } = await import("../auth/token");
+  const token = getToken();
+  const res = await fetch(url, {
+    method,
+    headers: {
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
+    },
+    body: body == null ? undefined : isFormData ? (body as unknown as BodyInit) : JSON.stringify(body),
+    cache,
+    signal,
+  });
+  const contentType = res.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+  const payload = isJson ? await res.json().catch(() => undefined) : await res.text().catch(() => undefined);
+  if (!res.ok) {
+    const message = (payload && (payload.detail || payload.message)) || res.statusText || "Request failed";
+    throw new ApiError(String(message), res.status, payload);
+  }
+  return (isJson ? (payload as TResponse) : (undefined as unknown as TResponse));
+}
+
+export const httpDirect = {
+  get: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) => requestDirect<T>(path, { ...options, method: "GET" }),
+  post: <T, B = unknown>(path: string, body?: B, options?: Omit<RequestOptions<B>, "method" | "body">) =>
+    requestDirect<T, B>(path, { ...options, method: "POST", body }),
+  patch: <T, B = unknown>(path: string, body?: B, options?: Omit<RequestOptions<B>, "method" | "body">) =>
+    requestDirect<T, B>(path, { ...options, method: "PATCH", body }),
+  put: <T, B = unknown>(path: string, body?: B, options?: Omit<RequestOptions<B>, "method" | "body">) =>
+    requestDirect<T, B>(path, { ...options, method: "PUT", body }),
+  delete: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) => requestDirect<T>(path, { ...options, method: "DELETE" }),
+};

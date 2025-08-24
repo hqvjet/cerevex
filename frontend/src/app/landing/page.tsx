@@ -1,6 +1,7 @@
 import Navbar from "@/components/sections/Navbar";
 import Hero from "@/components/sections/Hero";
 import InstantAnalysis from "@/components/sections/InstantAnalysis";
+import SentimentOverview from "@/components/sections/SentimentOverview";
 import UseCases from "@/components/sections/UseCases";
 import Team from "@/components/sections/Team";
 import Publications from "@/components/sections/Publications";
@@ -11,6 +12,7 @@ export default function Landing() {
     <div className="font-sans">
       <Navbar />
       <Hero />
+  <SentimentOverview />
       <InstantAnalysis />
       <UseCases />
       <Team />

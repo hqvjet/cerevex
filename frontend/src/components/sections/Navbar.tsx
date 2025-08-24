@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { parseRoles, ROLES } from "@/lib/auth/roles";
+import { parseRoles, ROLES, hasAnyRole } from "@/lib/auth/roles";
 
 export default function Navbar() {
   const router = useRouter();
@@ -44,7 +44,7 @@ export default function Navbar() {
                 </>
               )}
               {/* system_admin */}
-              {parseRoles(user?.role).includes(ROLES.SYSTEM_ADMIN) && (
+              {hasAnyRole(parseRoles(user?.role), [ROLES.SYSTEM_ADMIN, ROLES.ADMIN]) && (
                 <>
                   <Link href="/phan-tich-he-thong" className="px-3 py-2 hover:underline">Phân tích hệ thống</Link>
                   <Link href="/quan-ly-tai-khoan" className="px-3 py-2 hover:underline">Quản lý tài khoản</Link>
