@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     http_timeout_sec: float = 60.0
     # Inbound request timeout (per API request)
     request_timeout_sec: float = 60.0
-    # Comma-separated list or "*"
+    # Comma-separated list or "*". Example: "http://localhost:3000,https://app.example.com"
     cors_allow_origins: str = "*"
 
     class Config:
