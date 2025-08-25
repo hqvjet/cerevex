@@ -93,8 +93,8 @@ async def analyze_comments(payload: CommentsPayload, ai: AIClient = Depends(get_
     )
 
 
-@router.post("/product-insights", response_model=ProductInsight)
-async def product_insight(payload: CommentsPayload, ai: AIClient = Depends(get_ai_client)):
+@router.post("/public-product-insight", response_model=ProductInsight, summary="Public product insight (no auth)")
+async def public_product_insight(payload: CommentsPayload, ai: AIClient = Depends(get_ai_client)):
     comments = payload.comments
     if not comments:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No comments provided")
