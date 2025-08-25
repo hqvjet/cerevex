@@ -11,6 +11,7 @@ import logging
 
 from config import get_settings
 from routers.analyze import router as analyze_router
+from database import engine, Base
 from core.ai_client import get_ai_client
 
 load_dotenv()
@@ -55,6 +56,12 @@ def create_app() -> FastAPI:
     else:
         cors_kwargs["allow_origins"] = origins  # type: ignore[typeddict-item]
     app.add_middleware(CORSMiddleware, **cors_kwargs)
+
+    # Create tables (simple auto-migrate approach)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception:
+        pass
 
     app.include_router(analyze_router)
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Dict, List, Optional
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -42,3 +43,12 @@ class ProductInsight(BaseModel):
     top_positive_examples: List[str] = Field(default_factory=list)
     top_negative_examples: List[str] = Field(default_factory=list)
     label_distribution: Dict[str, int]
+
+
+class AnalysisReportOut(BaseModel):
+    report_id: str
+    num_positive: int
+    num_neutral: int
+    num_negative: int
+    short_summary: str
+    created_at: datetime

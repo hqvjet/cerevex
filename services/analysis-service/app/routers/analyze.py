@@ -3,13 +3,20 @@ from __future__ import annotations
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
 from fastapi import status
 from typing import List, Optional
+from uuid import uuid4
+from sqlalchemy.orm import Session
+
+from database import get_db
+from models import AnalysisReport
+from deps import require_data_analyst
 
 from core.ai_client import get_ai_client, AIClient
-from models.schemas import (
+from model.schemas import (
     CommentsPayload,
     FileAnalysisResult,
     CommentsAnalysisResult,
     ProductInsight,
+    AnalysisReportOut,
 )
 from utils.analytics import (
     avg_length,
@@ -22,8 +29,40 @@ from utils.file_ingest import _read_any, validate_and_extract, SchemaError
 router = APIRouter(prefix="/analyze", tags=["analyze"])
 
 
-@router.post("/files", response_model=FileAnalysisResult)
-async def analyze_files(files: List[UploadFile] = File(...), ai: AIClient = Depends(get_ai_client)):
+@router.get("/reports", response_model=List[AnalysisReportOut], summary="List analysis reports of current user (data_analyst only)")
+def list_reports(
+    claims=Depends(require_data_analyst),
+    db: Session = Depends(get_db),
+):
+    user_id = claims.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+    rows = (
+        db.query(AnalysisReport)
+        .filter(AnalysisReport.user_id == user_id)
+        .order_by(AnalysisReport.created_at.desc())
+        .all()
+    )
+    return [
+        AnalysisReportOut(
+            report_id=r.report_id,
+            num_positive=r.num_positive,
+            num_neutral=r.num_neutral,
+            num_negative=r.num_negative,
+            short_summary=r.short_summary,
+            created_at=r.created_at,
+        )
+        for r in rows
+    ]
+
+
+@router.post("/files", response_model=FileAnalysisResult, summary="Analyze uploaded files (data_analyst only)")
+async def analyze_files(
+    files: List[UploadFile] = File(...),
+    ai: AIClient = Depends(get_ai_client),
+    _claims=Depends(require_data_analyst),
+    db: Session = Depends(get_db),
+):
     titles: List[Optional[str]] = []
     contents: List[str] = []
 
@@ -70,6 +109,25 @@ async def analyze_files(files: List[UploadFile] = File(...), ai: AIClient = Depe
         label_distribution=dist,
         items=items,
     )
+    # Persist summary into analysis_reports
+    try:
+        # Normalize keys to lower for aggregation
+        lower_dist = {k.lower(): v for k, v in dist.items()}
+        pos = sum(lower_dist.get(k, 0) for k in ["positive", "pos", "good", "+"])
+        neg = sum(lower_dist.get(k, 0) for k in ["negative", "neg", "bad", "-"])
+        neu = sum(lower_dist.get(k, 0) for k in ["neutral", "neu", "=", "middle"])
+        rep = AnalysisReport(
+            report_id=str(uuid4()),
+            user_id=_claims.get("sub"),
+            num_positive=pos,
+            num_neutral=neu,
+            num_negative=neg,
+            short_summary=f"Rows:{len(contents)} Dist:{dist} AvgLen:{result.avg_content_len:.1f}",
+        )
+        db.add(rep)
+        db.flush()
+    except Exception:
+        pass
     return result
 
 
