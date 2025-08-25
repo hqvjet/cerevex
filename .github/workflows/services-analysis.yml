@@ -49,7 +49,7 @@ jobs:
         run: |
           sleep 20 # Wait for the Lambda function to be updated
           aws lambda update-function-configuration --function-name cerevex-analysis-service --environment \
-          "Variables={AI_PREDICT_URL=${{ secrets.AI_PREDICT_URL }}}"
+          "Variables={AI_PREDICT_URL=${{ secrets.AI_PREDICT_URL }}, DATABASE_URL=${{ secrets.DATABASE_URL }}}"
           echo "✅ Lambda environment variables updated successfully."
 
       - name: Notify Deployment Success
