@@ -91,10 +91,44 @@ def aggregate_labels(labels: list[str]) -> dict[str, int]:
     return {k: counts.get(k, 0) for k in ["num_positive", "num_neutral", "num_negative"]}
 
 
+async def fetch_company_admin_email(company_id: str, token: str, fallback_email: str) -> str:
+    """Return the company_admin email for the company.
+
+    Strategy:
+    - Call user-service /users/ (company scoped list) using caller token.
+    - Find first record whose role string contains 'company_admin'.
+    - If request forbidden (caller isn't company_admin) or no admin found, fall back to provided fallback_email.
+    """
+    url = f"{str(settings.user_service_url).rstrip('/')}/users/"
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        async with httpx.AsyncClient(timeout=settings.http_timeout_sec) as client:
+            r = await client.get(url, headers=headers)
+    except httpx.RequestError:  # pragma: no cover - network
+        return fallback_email
+    if r.status_code == 403:
+        # Caller lacks permission to list; use fallback
+        return fallback_email
+    if r.status_code >= 400:
+        return fallback_email
+    try:
+        users = r.json() or []
+    except Exception:  # pragma: no cover
+        return fallback_email
+    for u in users:
+        roles = [x.strip() for x in (u.get("role") or "").split(",") if x.strip()]
+        if "company_admin" in roles and u.get("company_id") == company_id and u.get("email"):
+            return u.get("email")
+    return fallback_email
+
+
 @router.post("/sync", response_model=SyncResponse, summary="Synchronize third-party products + comments")
 async def sync_products(current: CurrentUser = Depends(get_current_user), auth_header: dict = Depends(get_auth_header)):
-    email = current.email
     company_id = current.company_id
+    # Extract bearer token from custom auth header
+    token = auth_header.get("X-Access-Token") if auth_header else None
+    admin_email = await fetch_company_admin_email(company_id, token, current.email) if token else current.email
+    email = admin_email
     # Step 1: remote products
     remote_products = await fetch_remote_products(email)
     remote_products_map = {p.id: p for p in remote_products}
