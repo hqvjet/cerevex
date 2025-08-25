@@ -37,7 +37,7 @@ def create_app() -> FastAPI:
         cors_kwargs["allow_origins"] = settings.cors_list  # type: ignore[typeddict-item]
     app.add_middleware(CORSMiddleware, **cors_kwargs)
 
-    app.include_router(router, prefix="/api")
+    app.include_router(router, prefix="/third-party")
 
     @app.get("/", tags=["health"])
     async def health():  # pragma: no cover - trivial
@@ -76,4 +76,4 @@ def handler(event, context):  # pragma: no cover
 
 if __name__ == "__main__":  # pragma: no cover
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8085, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8085)
