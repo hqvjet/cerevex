@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from deps import require_company_admin
+from deps import require_company_admin, get_current_user
 from models import User
 from roles import (
     ROLE_COMPANY_ADMIN,
@@ -34,6 +34,22 @@ def _to_company_user_out(u: User) -> CompanyUserOut:
         company_id=u.company_id,
         created_at=u.created_at,
     )
+
+
+@router.get("/admin-email", summary="Get company_admin email for my company (any company member)" )
+def get_company_admin_email(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    if not user.company_id:
+        raise HTTPException(status_code=409, detail="User has no company")
+    admin = (
+        db.query(User)
+        .filter(User.company_id == user.company_id)
+        .filter(User.role.like(f"%{ROLE_COMPANY_ADMIN}%"))
+        .order_by(User.created_at.asc())
+        .first()
+    )
+    if not admin:
+        raise HTTPException(status_code=404, detail="company_admin not found")
+    return {"company_id": user.company_id, "company_admin_email": admin.email}
 
 
 @router.post("/users", response_model=CompanyUserOut, summary="company_admin: Create user in my company (assign roles)")
