@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from mangum import Mangum
@@ -9,7 +9,7 @@ load_dotenv()
 
 from database import Base, engine
 from sqlalchemy import text
-from routers import auth, users
+from routers import auth, users, company
 from config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -50,8 +50,7 @@ def create_app() -> FastAPI:
         title="Cerevex User Service",
         version="1.0.0",
         description=(
-            "Auth uses httpOnly cookie '" + settings.cookie_name + "' to store access token."
-            " Use the lock icon fields in docs to pass a Bearer token when testing without cookies."
+            "Authentication uses Bearer JWT (Authorization: Bearer <token>)."
         ),
         lifespan=lifespan
     )
@@ -69,8 +68,12 @@ def create_app() -> FastAPI:
         cors_kwargs["allow_origins"] = settings.cors_allow_origins  # type: ignore[typeddict-item]
     app.add_middleware(CORSMiddleware, **cors_kwargs)
 
-    app.include_router(auth.router, prefix="/auth", tags=["auth"])
-    app.include_router(users.router, prefix="/users", tags=["users"])
+    # Group all routes under a unified "/users" prefix
+    users_api = APIRouter(prefix="/users")
+    users_api.include_router(auth.router, prefix="/auth", tags=["auth"])
+    users_api.include_router(users.router, prefix="", tags=["users"])
+    users_api.include_router(company.router, prefix="/company", tags=["company"])
+    app.include_router(users_api)
 
     return app
 

@@ -8,6 +8,7 @@ from database import get_db
 from models import User
 from schemas import UserOut, UserUpdate, SetCompanyRequest
 from security import get_token_from_request, decode_token_or_401, hash_password, http_bearer
+from roles import has_role, parse_roles, ROLE_COMPANY_ADMIN
 
 
 router = APIRouter()
@@ -20,14 +21,9 @@ def require_auth(token: str | None = Depends(get_token_from_request)) -> str:
     return payload.get("sub")
 
 
-def parse_roles(role_str: str) -> list[str]:
-    return [r.strip() for r in (role_str or "").split(",") if r.strip()]
-
-
-def ensure_admin(user: User):
-    roles = parse_roles(user.role)
-    if "admin" not in roles:
-        raise HTTPException(status_code=403, detail="Admin role required")
+def ensure_company_admin(user: User):
+    if not has_role(user.role, ROLE_COMPANY_ADMIN):
+        raise HTTPException(status_code=403, detail="company_admin role required")
 
 
 @router.get("/me", response_model=UserOut, summary="Get current user", dependencies=[Depends(http_bearer)])
@@ -43,24 +39,35 @@ def list_users(user_id: str = Depends(require_auth), db: Session = Depends(get_d
     caller = db.get(User, user_id)
     if not caller:
         raise HTTPException(status_code=404, detail="User not found")
-    ensure_admin(caller)
-    return db.query(User).order_by(User.created_at.desc()).all()
+    ensure_company_admin(caller)
+    return (
+        db.query(User)
+        .filter(User.company_id == caller.company_id)
+        .order_by(User.created_at.desc())
+        .all()
+    )
 
 
 @router.get("/{user_id}", response_model=UserOut, summary="Get user by id", dependencies=[Depends(http_bearer)])
-def get_user(user_id: str, _: str = Depends(require_auth), db: Session = Depends(get_db)):
+def get_user(user_id: str, caller_id: str = Depends(require_auth), db: Session = Depends(get_db)):
+    caller = db.get(User, caller_id)
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    # Allow self or same-company access for company_admin
+    if user.user_id != caller.user_id:
+        ensure_company_admin(caller)
+        if user.company_id != caller.company_id:
+            raise HTTPException(status_code=404, detail="User not found")
     return user
 
 
 @router.patch("/{user_id}", response_model=UserOut, summary="Update user", dependencies=[Depends(http_bearer)])
 def update_user(user_id: str, payload: UserUpdate, caller_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     caller = db.get(User, caller_id)
-    ensure_admin(caller)
+    ensure_company_admin(caller)
     user = db.get(User, user_id)
-    if not user:
+    if not user or user.company_id != caller.company_id:
         raise HTTPException(status_code=404, detail="User not found")
     if payload.email is not None:
         # Ensure email unique
@@ -82,9 +89,9 @@ def update_user(user_id: str, payload: UserUpdate, caller_id: str = Depends(requ
 @router.delete("/{user_id}", response_model=None, status_code=204, summary="Delete user", dependencies=[Depends(http_bearer)])
 def delete_user(user_id: str, caller_id: str = Depends(require_auth), db: Session = Depends(get_db)):
     caller = db.get(User, caller_id)
-    ensure_admin(caller)
+    ensure_company_admin(caller)
     user = db.get(User, user_id)
-    if not user:
+    if not user or user.company_id != caller.company_id:
         raise HTTPException(status_code=404, detail="User not found")
     db.delete(user)
     return None

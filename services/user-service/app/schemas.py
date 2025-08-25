@@ -64,3 +64,27 @@ class AccessTokenResponse(BaseModel):
 
 class SetCompanyRequest(BaseModel):
     company_id: str
+
+
+# Company-scoped management
+class CompanyUserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    roles: list[str] = Field(default_factory=lambda: ["user"], description="List of roles to assign")
+
+
+class CompanyUserOut(BaseModel):
+    user_id: str
+    email: EmailStr
+    roles: list[str]
+    role: str
+    company_id: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CompanyUserUpdateRoles(BaseModel):
+    roles: list[str] = Field(min_length=1)
+
