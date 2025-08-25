@@ -1,11 +1,11 @@
-name: CICD For Enterprise Service
+name: CICD For Third Party Service
 
 on:
   push:
     branches:
       - develop
     paths:
-      - 'services/enterprise-service/**'
+      - 'services/third-party-service/**'
 
 jobs:
   # Build Docker Image
@@ -29,28 +29,28 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t cerevex/enterprise_service services/enterprise-service
-          echo "Docker image 'cerevex/enterprise_service' built successfully."
+          docker build -t cerevex/third_party_service services/third-party-service
+          echo "Docker image 'cerevex/third_party_service' built successfully."
 
-      - name: Push Enterprise Service Image into AWS ECR
+      - name: Push Third Party Service Image into AWS ECR
         run: |
           aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
-          docker tag cerevex/enterprise_service:latest ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/enterprise_service:latest
-          docker push ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/enterprise_service:latest
-          echo "✅ Docker image 'cerevex/enterprise_service' pushed to ECR successfully."
+          docker tag cerevex/third_party_service:latest ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/third_party_service:latest
+          docker push ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/third_party_service:latest
+          echo "✅ Docker image 'cerevex/third_party_service' pushed to ECR successfully."
           sleep 10 # Wait for ECR to process the image
 
       - name: Update Lambda Function Code from ECR
         run: |
-          aws lambda update-function-code --function-name cerevex-enterprise-service --image-uri ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/enterprise_service:latest
+          aws lambda update-function-code --function-name cerevex-third-party-service --image-uri ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/cerevex/third_party_service:latest
           echo "✅ Lambda function code updated successfully."
 
       - name: Update Lambda Environment Variables (Non-AWS secrets only)
         run: |
           sleep 20 # Wait for the Lambda function to be updated
-          aws lambda update-function-configuration --function-name cerevex-enterprise-service --environment \
-          "Variables={DATABASE_URL=${{ secrets.DATABASE_URL }}, USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}}"
+          aws lambda update-function-configuration --function-name cerevex-third-party-service --environment \
+          "Variables={THIRD_PARTY_API_URL=${{ secrets.THIRD_PARTY_API_URL }}, AI_PREDICT_URL=${{ secrets.AI_PREDICT_URL }}, ENTERPRISE_API_URL=${{ secrets.ENTERPRISE_API_URL }}, USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}}"
           echo "✅ Lambda environment variables updated successfully."
 
       - name: Notify Deployment Success
-        run: echo "Deployment of Enterprise Service completed successfully."
+        run: echo "Deployment of Third Party Service completed successfully."
