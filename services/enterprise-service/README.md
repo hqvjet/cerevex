@@ -26,13 +26,13 @@ uvicorn app.main:app --reload --port 8082
 
 ## API
 
-- POST `/api/companies` – create company (any authenticated user)
-- GET `/api/companies` – list caller's company
-- GET `/api/companies/{company_id}` – get company (must match caller's company_id)
-- PATCH `/api/companies/{company_id}` – update company (caller company only)
-- DELETE `/api/companies/{company_id}` – delete company (caller company only)
-- POST `/api/companies/{company_id}/products` – create product (caller company only)
-- GET `/api/companies/{company_id}/products` – list products (caller company only)
-- GET `/api/companies/{company_id}/products/{product_id}` – get product (caller company only)
-- PATCH `/api/companies/{company_id}/products/{product_id}` – update product (caller company only)
-- DELETE `/api/companies/{company_id}/products/{product_id}` – delete product (caller company only)
+- POST `/enterprise/companies` – create company (any authenticated user)
+- GET `/enterprise/companies` – list caller's company
+- GET `/enterprise/companies/{company_id}` – get company (must match caller's company_id)
+- PATCH `/enterprise/companies/{company_id}` – update company (caller company only)
+- DELETE `/enterprise/companies/{company_id}` – delete company (caller company only)
+- POST `/enterprise/companies/{company_id}/products` – create product (caller company only)
+- GET `/enterprise/companies/{company_id}/products` – list products (caller company only)
+- GET `/enterprise/companies/{company_id}/products/{product_id}` – get product (caller company only)
+- PATCH `/enterprise/companies/{company_id}/products/{product_id}` – update product (caller company only)
+- DELETE `/enterprise/companies/{company_id}/products/{product_id}` – delete product (caller company only)

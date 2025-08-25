@@ -44,7 +44,7 @@ def create_app() -> FastAPI:
         cors_kwargs["allow_origins"] = settings.cors_allow_origins  # type: ignore[typeddict-item]
     app.add_middleware(CORSMiddleware, **cors_kwargs)
 
-    app.include_router(router, prefix="/api")
+    app.include_router(router, prefix="/enterprise")
     return app
 
 
