@@ -23,6 +23,7 @@ class CurrentUser(dict):
 
 
 ROLE_PRODUCT_INSIGHT_ANALYST = "product_insight_analyst"
+ROLE_COMPANY_ADMIN = "company_admin"
 
 
 async def get_current_user(creds: HTTPAuthorizationCredentials = Depends(http_bearer)) -> CurrentUser:
@@ -40,8 +41,8 @@ async def get_current_user(creds: HTTPAuthorizationCredentials = Depends(http_be
     data = r.json()
     # role string is comma-separated
     roles = [x.strip() for x in (data.get("role") or "").split(",") if x.strip()]
-    if ROLE_PRODUCT_INSIGHT_ANALYST not in roles:
-        raise HTTPException(status_code=403, detail="product_insight_analyst role required")
+    if not any(r in roles for r in (ROLE_PRODUCT_INSIGHT_ANALYST, ROLE_COMPANY_ADMIN)):
+        raise HTTPException(status_code=403, detail="company_admin or product_insight_analyst role required")
     if not data.get("company_id"):
         raise HTTPException(status_code=409, detail="User has no company")
     return CurrentUser(data)
