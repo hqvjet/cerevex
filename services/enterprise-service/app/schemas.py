@@ -71,6 +71,9 @@ class ProductBase(BaseModel):
 class ProductCreate(BaseModel):
     product_name: str
     third_party_id: str
+    num_positive: int = Field(default=0)
+    num_neutral: int = Field(default=0)
+    num_negative: int = Field(default=0)
     short_summary: str
     added_at: Optional[datetime] = None
 

@@ -124,6 +124,9 @@ def create_product(company_id: str, payload: ProductCreate, current: CurrentUser
         company_id=company_id,
         product_name=payload.product_name,
         third_party_id=payload.third_party_id,
+    num_positive=payload.num_positive,
+    num_neutral=payload.num_neutral,
+    num_negative=payload.num_negative,
         short_summary=payload.short_summary,
         added_at=payload.added_at,
     )
