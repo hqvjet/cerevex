@@ -175,3 +175,20 @@ def delete_product(company_id: str, product_id: str, current: CurrentUser = Depe
         raise HTTPException(status_code=404, detail="Product not found")
     db.delete(product)
     return None
+
+
+# --- Aggregations ---
+@router.get("/companies/{company_id}/sentiment-summary", summary="Aggregate sentiment counts across all company products")
+def sentiment_summary(company_id: str, current: CurrentUser = Depends(require_company_user), db: Session = Depends(get_db)):
+    if current.company_id != company_id:
+        raise HTTPException(status_code=403, detail="Can only view sentiment for your company")
+    rows = db.query(Product).filter(Product.company_id == company_id).all()
+    total_pos = sum(r.num_positive for r in rows)
+    total_neu = sum(r.num_neutral for r in rows)
+    total_neg = sum(r.num_negative for r in rows)
+    return {
+        "num_positive": total_pos,
+        "num_neutral": total_neu,
+        "num_negative": total_neg,
+        "product_count": len(rows),
+    }
