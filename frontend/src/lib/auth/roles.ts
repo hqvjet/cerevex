@@ -1,8 +1,8 @@
 export const ROLES = {
   ADMIN: "admin",
   USER: "user",
-  DATA_ANALYSIST: "data_analyst",
-  PRODUCT_INSIGHT_ANALYSIST: "product_insight_analyst",
+  DATA_ANALYST: "data_analyst",
+  PRODUCT_INSIGHT_ANALYST: "product_insight_analyst",
   COMPANY_ADMIN: "company_admin",
   SYSTEM_ADMIN: "system_admin",
 } as const;

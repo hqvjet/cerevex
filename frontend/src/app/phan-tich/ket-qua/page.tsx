@@ -5,7 +5,6 @@ import Link from "next/link";
 import Protected from "@/components/auth/Protected";
 import { ROLES, hasAnyRole, parseRoles } from "@/lib/auth/roles";
 import { useAuth } from "@/lib/auth";
-import { AnalystNavbar } from "@/components/analysis/AnalystNavbar";
 import type { FileAnalysisResult } from "@/lib/api/analysisService";
 import { ChartContainer, ChartHeader } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +14,7 @@ import { Button } from "@/components/ui/button";
 export default function KetQuaPage() {
   const { user } = useAuth();
   const roles = parseRoles(user?.role);
-  const allowed = hasAnyRole(roles, [ROLES.DATA_ANALYSIST, ROLES.PRODUCT_INSIGHT_ANALYSIST, ROLES.SYSTEM_ADMIN, ROLES.ADMIN]);
+  const allowed = hasAnyRole(roles, [ROLES.DATA_ANALYST, ROLES.PRODUCT_INSIGHT_ANALYST, ROLES.SYSTEM_ADMIN, ROLES.ADMIN]);
 
   const [fileRes, setFileRes] = useState<FileAnalysisResult | null>(null);
 
@@ -77,8 +76,7 @@ export default function KetQuaPage() {
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <Protected allow={() => allowed}>
-      <AnalystNavbar />
+  <Protected allow={() => allowed}>
       <section className="relative overflow-hidden bg-[#0B4AA3] text-white">
         <div className="absolute inset-0">
           <Image src="/assets/images/hero_frame.png" alt="bg" fill className="object-cover opacity-40" />

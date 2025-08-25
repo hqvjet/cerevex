@@ -51,13 +51,14 @@ export async function request<TResponse, TBody = unknown>(
 
   // Lazy import to avoid SSR issues
   const { getToken } = await import("../auth/token");
-  const token = getToken();
+  const token = getToken(); // Optional: if present we'll still send header; primary auth via cookie
 
   const res = await fetch(url, {
     method,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  // Authorization header optional; server should read cookie `cvx_access_token`
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body: body == null ? undefined : isFormData ? (body as unknown as BodyInit) : JSON.stringify(body),
@@ -114,7 +115,7 @@ async function requestDirect<TResponse, TBody = unknown>(
     method,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body: body == null ? undefined : isFormData ? (body as unknown as BodyInit) : JSON.stringify(body),

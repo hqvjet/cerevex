@@ -3,6 +3,7 @@ import { Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import AuthGate from "../components/auth/AuthGate";
+import Navbar from "@/components/sections/Navbar";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -28,8 +29,8 @@ export const metadata: Metadata = {
   description:
     "Nền tảng phân tích cảm xúc tiếng Việt chính xác, nhanh và tiết kiệm cho doanh nghiệp dịch vụ.",
   icons: {
-    icon: "/logo.ico",
-    shortcut: "/logo.ico",
+  icon: "/favicon.ico",
+  shortcut: "/favicon.ico",
   },
 };
 
@@ -44,7 +45,10 @@ export default function RootLayout({
   className={`${montserrat.variable} ${geistMono.variable} antialiased bg-white text-slate-900`}
       >
         <AuthProvider>
-          <AuthGate>{children}</AuthGate>
+          <AuthGate>
+            <Navbar />
+            {children}
+          </AuthGate>
         </AuthProvider>
       </body>
     </html>

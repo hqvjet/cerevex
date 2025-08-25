@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { parseRoles, type Role } from "@/lib/auth/roles";
 
@@ -10,27 +10,34 @@ export default function Protected({ children, allow }: { children: React.ReactNo
   const { status, user, initialized } = useAuth();
 
   const redirectTimer = useRef<NodeJS.Timeout | null>(null);
+  // Always declare hooks before any early returns
+  const roles = useMemo(() => parseRoles(user?.role), [user?.role]);
+  const isAllowed = allow ? allow(roles) : true;
+
+  // Handle unauthenticated redirect
   useEffect(() => {
     if (!initialized) return;
     if (status === "unauthenticated") {
-      // Delay redirect slightly to allow signin to flip status
       redirectTimer.current = setTimeout(() => {
         router.replace("/signin");
       }, 250);
-      return () => {
-        if (redirectTimer.current) clearTimeout(redirectTimer.current);
-      };
     }
+    return () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current);
+    };
   }, [status, router, initialized]);
 
+  // Redirect when authenticated but not allowed
+  useEffect(() => {
+    if (!initialized) return;
+    if (status === "authenticated" && allow && !isAllowed) {
+      router.replace("/dashboard");
+    }
+  }, [initialized, status, allow, isAllowed, router]);
+
+  // Render gates
   if (!initialized) return null;
   if (status !== "authenticated") return null;
-
-  const roles = parseRoles(user?.role);
-  if (allow && !allow(roles)) {
-    // If not allowed, send to dashboard
-    if (typeof window !== "undefined") router.replace("/dashboard");
-    return null;
-  }
+  if (allow && !isAllowed) return null;
   return <>{children}</>;
 }

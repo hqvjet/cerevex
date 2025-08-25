@@ -6,7 +6,7 @@ function getAuthBase() {
   let base = process.env.AUTH_API_URL;
   if (!base) {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-    if (apiBase) base = `${apiBase.replace(/\/?$/, "")}/auth`;
+    if (apiBase) base = `${apiBase.replace(/\/?$/, "")}/users/auth`;
   }
   return base || "";
 }

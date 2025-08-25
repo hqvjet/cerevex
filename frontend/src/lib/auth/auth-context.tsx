@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("loading");
     const res = await userService.signin({ email, password });
     if (res?.access_token) {
-      setToken(res.access_token);
+      setToken(res.access_token, { expiresAt: res.expires_at || undefined });
       if (res.user) {
         setUser(res.user);
         setStatus("authenticated");

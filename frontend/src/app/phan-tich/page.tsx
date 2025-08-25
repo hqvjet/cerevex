@@ -4,7 +4,6 @@ import Image from "next/image";
 import Protected from "@/components/auth/Protected";
 import { ROLES, hasAnyRole, parseRoles } from "@/lib/auth/roles";
 import { useAuth } from "@/lib/auth";
-import { AnalystNavbar } from "@/components/analysis/AnalystNavbar";
 import { analysisService } from "@/lib/api/analysisService";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -12,7 +11,7 @@ import { useRouter } from "next/navigation";
 export default function PhanTichPage() {
   const { user } = useAuth();
   const roles = parseRoles(user?.role);
-  const allowed = hasAnyRole(roles, [ROLES.DATA_ANALYSIST, ROLES.PRODUCT_INSIGHT_ANALYSIST, ROLES.SYSTEM_ADMIN, ROLES.ADMIN]);
+  const allowed = hasAnyRole(roles, [ROLES.DATA_ANALYST, ROLES.PRODUCT_INSIGHT_ANALYST, ROLES.SYSTEM_ADMIN, ROLES.ADMIN]);
 
   const router = useRouter();
   const [fileLoading, setFileLoading] = useState(false);
@@ -40,8 +39,7 @@ export default function PhanTichPage() {
   }
 
   return (
-    <Protected allow={() => allowed}>
-      <AnalystNavbar />
+  <Protected allow={() => allowed}>
       {/* Hero banner in landing style */}
       <section className="relative overflow-hidden bg-[#0B4AA3] text-white">
         <div className="absolute inset-0">
