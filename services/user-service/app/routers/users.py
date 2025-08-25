@@ -8,7 +8,7 @@ from database import get_db
 from models import User
 from schemas import UserOut, UserUpdate, SetCompanyRequest
 from security import get_token_from_request, decode_token_or_401, hash_password, http_bearer
-from roles import has_role, parse_roles, ROLE_COMPANY_ADMIN
+from roles import has_role, parse_roles, ROLE_COMPANY_ADMIN, serialize_roles, ROLE_USER
 
 
 router = APIRouter()
@@ -105,6 +105,13 @@ def set_my_company(payload: SetCompanyRequest, user_id: str = Depends(require_au
     if user.company_id:
         raise HTTPException(status_code=409, detail="User already has a company")
     user.company_id = payload.company_id
+    # Auto-promote first time company creator to company_admin (idempotent within this path)
+    if not has_role(user.role, ROLE_COMPANY_ADMIN):
+        existing = parse_roles(user.role)
+        if not existing:
+            existing = [ROLE_USER]
+        existing.append(ROLE_COMPANY_ADMIN)
+        user.role = serialize_roles(existing)
     db.add(user)
     db.flush()
     return user
