@@ -113,8 +113,8 @@ async def public_product_insight(payload: CommentsPayload, ai: AIClient = Depend
     pos_examples, neg_examples = pick_examples(
         contents,
         labels,
-        positive_labels=["positive", "good", "+"],
-        negative_labels=["negative", "bad", "-"],
+        positive_labels=["positive", "pos", "good", "+"],
+        negative_labels=["negative", "neg", "bad", "-"],
     )
 
     summary = (

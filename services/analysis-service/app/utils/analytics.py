@@ -15,10 +15,30 @@ def avg_length(texts: List[str]) -> float:
     return round(total / max(len(texts), 1), 2)
 
 
-def pick_examples(comments: List[str], labels: List[str], positive_labels: List[str], negative_labels: List[str], k: int = 3) -> Tuple[List[str], List[str]]:
-    pos = [c for c, l in zip(comments, labels) if l in positive_labels][:k]
-    neg = [c for c, l in zip(comments, labels) if l in negative_labels][:k]
-    return pos, neg
+def pick_examples(
+    comments: List[str],
+    labels: List[str],
+    positive_labels: List[str],
+    negative_labels: List[str],
+    k: int = 3,
+) -> Tuple[List[str], List[str]]:
+    """Pick up to k positive & negative example comment texts.
+
+    Matching is case-insensitive and supports shorthand variants (e.g. 'pos', 'neg').
+    """
+    pos_set = {p.lower() for p in positive_labels}
+    neg_set = {n.lower() for n in negative_labels}
+    picked_pos: List[str] = []
+    picked_neg: List[str] = []
+    for c, l in zip(comments, labels):
+        ll = (l or '').lower()
+        if ll in pos_set and len(picked_pos) < k:
+            picked_pos.append(c)
+        elif ll in neg_set and len(picked_neg) < k:
+            picked_neg.append(c)
+        if len(picked_pos) >= k and len(picked_neg) >= k:
+            break
+    return picked_pos, picked_neg
 
 
 def buy_recommendation_from_distribution(dist: Dict[str, int]) -> tuple[str, float]:
