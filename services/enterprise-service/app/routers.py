@@ -15,6 +15,9 @@ from config import settings
 
 router = APIRouter(dependencies=[Depends(http_bearer)])
 
+# Public router (no auth) for lightweight checks
+public_router = APIRouter()
+
 
 # --- Companies ---
 @router.post("/companies", response_model=CompanyOut, summary="Create company (allowed to users with or without company)")
@@ -192,3 +195,28 @@ def sentiment_summary(company_id: str, current: CurrentUser = Depends(require_co
         "num_negative": total_neg,
         "product_count": len(rows),
     }
+
+
+# --- Public helper endpoints ---
+@public_router.get("/public/products/support-status/{third_party_id}", summary="Check if a third-party product is supported")
+def public_product_support_status(third_party_id: str, db: Session = Depends(get_db)):
+        """Return support status for a product identified by a third-party product id.
+
+        Response contract:
+            supported: bool
+            product_id: internal product id if supported else None
+            company_id: owning company if supported else None
+            message: localized helper text for buyers
+        """
+        product = db.query(Product).filter(Product.third_party_id == third_party_id).first()
+        if not product:
+                return {
+                        "supported": False,
+                        "product_id": None,
+                        "company_id": None,
+                        "message": "Rất tiếc, người bán này hiện chưa được hỗ trợ trên Cerevex."}
+        return {
+                "supported": True,
+                "product_id": product.product_id,
+                "company_id": product.company_id,
+                "message": "Sản phẩm đã được hỗ trợ – bạn có thể xem phân tích nâng cao."}

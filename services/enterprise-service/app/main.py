@@ -10,7 +10,7 @@ import logging
 load_dotenv()
 
 from database import Base, engine
-from routers import router
+from routers import router, public_router
 from config import settings
 
 
@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
         cors_kwargs["allow_origins"] = settings.cors_allow_origins  # type: ignore[typeddict-item]
     app.add_middleware(CORSMiddleware, **cors_kwargs)
 
+    app.include_router(public_router, prefix="/enterprise")
     app.include_router(router, prefix="/enterprise")
     return app
 
