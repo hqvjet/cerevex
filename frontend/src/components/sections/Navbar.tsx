@@ -64,24 +64,69 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setOpen((o) => !o)}
-                className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                className="group flex items-center gap-3 rounded-full border border-slate-200 bg-white/80 px-3 pl-2 pr-3 py-1.5 text-sm text-slate-700 shadow-sm hover:shadow-md hover:border-blue-200 hover:bg-white transition-all"
               >
-                <span className="inline-flex size-6 items-center justify-center rounded-full bg-blue-600 text-white text-xs">
+                <span className="relative inline-flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 via-indigo-500 to-sky-400 text-white text-xs font-semibold ring-2 ring-white shadow-inner">
                   {user?.email?.[0]?.toUpperCase() ?? "U"}
+                  <span className="absolute -right-0.5 -bottom-0.5 size-2 rounded-full bg-emerald-400 ring-2 ring-white" />
                 </span>
-                <span className="max-w-[160px] truncate">{user?.email ?? "Tài khoản"}</span>
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 8L10 12L14 8" stroke="#334155" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <span className="flex flex-col items-start leading-tight max-w-[170px]">
+                  <span className="truncate font-medium text-slate-900 group-hover:text-blue-700 transition-colors">{user?.email ?? "Tài khoản"}</span>
+                  {roles?.length ? (
+                    <span className="text-[10px] uppercase tracking-wide text-slate-500">
+                      {roles[0]}
+                    </span>
+                  ) : null}
+                </span>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 20 20"
+                  className={`transition-transform ${open ? "rotate-180" : ""}`}
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6 8L10 12L14 8"
+                    stroke="#334155"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
               {open && (
-                <div className="absolute right-0 mt-2 w-52 rounded-md border border-slate-200 bg-white shadow-lg">
-                  <div className="px-3 py-2 text-xs text-slate-500">Đã đăng nhập</div>
-                  <div className="px-3 pb-2 text-sm font-medium truncate">{user?.email}</div>
+                <div className="absolute right-0 mt-2 w-64 origin-top-right animate-scale-in overflow-hidden rounded-xl border border-slate-200 bg-white/95 backdrop-blur-sm shadow-xl ring-1 ring-black/5">
+                  <div className="px-4 pt-4 pb-3 flex items-center gap-3">
+                    <div className="relative inline-flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 via-indigo-500 to-sky-400 text-white text-sm font-semibold">
+                      {user?.email?.[0]?.toUpperCase() ?? "U"}
+                      <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{user?.email}</p>
+                      {roles?.length ? (
+                        <p className="text-[11px] uppercase tracking-wide text-blue-600 font-medium truncate">{roles.join(", ")}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="px-4 pb-3 flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (user?.email) navigator.clipboard.writeText(user.email);
+                      }}
+                      className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-white hover:text-slate-900 transition-colors"
+                    >
+                      Copy Email
+                    </button>
+                    <Link
+                      href="/huong-dan"
+                      className="flex-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-medium text-blue-700 hover:bg-white transition-colors text-center"
+                    >
+                      Hướng dẫn
+                    </Link>
+                  </div>
                   <div className="border-t border-slate-200" />
                   <div className="p-2 flex flex-col gap-1">
-                    {/* Đổi từ trang tài khoản sang hướng dẫn sử dụng */}
-                    <Link href="/huong-dan" className="px-2 py-1.5 rounded-md text-slate-700 hover:bg-slate-50 text-sm">Hướng dẫn sử dụng</Link>
                     <Button
                       variant="ghost"
                       size="sm"

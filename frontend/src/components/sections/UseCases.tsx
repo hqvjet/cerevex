@@ -18,16 +18,17 @@ const cases = [
 
 export default function UseCases() {
   return (
-    <section className="relative py-16 md:py-24 bg-white">
-      <div className="absolute inset-0 -z-10 pointer-events-none">
+    <section className="relative py-16 md:py-24">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
           src="/assets/images/academic_publish_background.png"
           alt="pattern"
           fill
-          className="object-cover opacity-20"
+          className="object-cover opacity-100"
         />
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]" />
       </div>
-      <div className="mx-auto max-w-6xl px-4">
+      <div className="relative z-10 mx-auto max-w-6xl px-4">
         <h2 className="text-center text-3xl md:text-4xl font-extrabold text-[#0B4AA3]">
           Hãy Đến Và Làm Chủ Dữ Liệu Của Bạn
         </h2>
