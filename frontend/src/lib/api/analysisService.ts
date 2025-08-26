@@ -55,6 +55,9 @@ export const analysisService = {
   productInsights: async (payload: CommentsPayload) => {
   return http.post<ProductInsight, CommentsPayload>(`/analyze/product-insights`, payload);
   },
+  listReports: async () => {
+    return http.get<AnalysisReportOut[]>(`/analyze/reports`);
+  },
 };
 
 // ===== OpenAPI Types =====
@@ -94,4 +97,13 @@ export interface ProductInsight {
   top_positive_examples?: string[];
   top_negative_examples?: string[];
   label_distribution: Record<string, number>;
+}
+
+export interface AnalysisReportOut {
+  report_id: string;
+  num_positive: number;
+  num_neutral: number;
+  num_negative: number;
+  short_summary: string;
+  created_at: string; // ISO
 }

@@ -80,7 +80,8 @@ export default function Navbar() {
                   <div className="px-3 pb-2 text-sm font-medium truncate">{user?.email}</div>
                   <div className="border-t border-slate-200" />
                   <div className="p-2 flex flex-col gap-1">
-                    <Link href="/tai-khoan-cua-toi" className="px-2 py-1.5 rounded-md text-slate-700 hover:bg-slate-50 text-sm">Tài khoản của tôi</Link>
+                    {/* Đổi từ trang tài khoản sang hướng dẫn sử dụng */}
+                    <Link href="/huong-dan" className="px-2 py-1.5 rounded-md text-slate-700 hover:bg-slate-50 text-sm">Hướng dẫn sử dụng</Link>
                     <Button
                       variant="ghost"
                       size="sm"

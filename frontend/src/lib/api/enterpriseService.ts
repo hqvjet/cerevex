@@ -44,6 +44,26 @@ export const enterpriseService = {
   listProducts: async (companyId: string) => {
     return http.get<EnterpriseProduct[]>(`${enterpriseBase()}/companies/${encodeURIComponent(companyId)}/products`);
   },
+  createProduct: async (companyId: string, payload: {
+    product_name: string;
+    third_party_id: string;
+    short_summary: string;
+    num_positive?: number;
+    num_neutral?: number;
+    num_negative?: number;
+    added_at?: string | null;
+  }) => {
+    return http.post<EnterpriseProduct>(`${enterpriseBase()}/companies/${encodeURIComponent(companyId)}/products`, {
+      num_positive: 0,
+      num_neutral: 0,
+      num_negative: 0,
+      added_at: new Date().toISOString(),
+      ...payload,
+    });
+  },
+  removeProduct: async (companyId: string, productId: string) => {
+    return http.delete<void>(`${enterpriseBase()}/companies/${encodeURIComponent(companyId)}/products/${encodeURIComponent(productId)}`);
+  },
   sync: async (): Promise<SyncResponse> => {
     return http.post<SyncResponse>(`${thirdPartyBase()}/sync`);
   },

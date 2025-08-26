@@ -27,12 +27,12 @@ function AdminAccountsScreen() {
       <section className="max-w-6xl mx-auto px-6 pt-10 pb-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-      <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">Quản lý tài khoản nội bộ</h1>
-            <p className="text-slate-500 mt-1">Tạo, phân quyền và quản lý người dùng trong doanh nghiệp của bạn.</p>
+  <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">Tài khoản nội bộ</h1>
+    <p className="text-slate-500 mt-1">Thêm cộng sự & cấp quyền phân tích để cùng theo dõi khách hàng hiệu quả.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant={tab === "list" ? "primary" : "secondary"} onClick={() => setTab("list")}>Danh sách</Button>
-            <Button variant={tab === "create" ? "primary" : "secondary"} onClick={() => setTab("create")}>Thêm người dùng</Button>
+            <Button variant={tab === "list" ? "primary" : "secondary"} onClick={() => setTab("list")}>Danh sách người dùng</Button>
+            <Button variant={tab === "create" ? "primary" : "secondary"} onClick={() => setTab("create")}>Tạo mới</Button>
           </div>
         </div>
       </section>
@@ -87,9 +87,9 @@ function UsersList() {
     <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <CardTitle>Danh sách người dùng</CardTitle>
+          <CardTitle>Danh sách thành viên</CardTitle>
           <div className="w-full sm:w-80">
-            <Input placeholder="Tìm theo email hoặc vai trò..." value={q} onChange={(e) => setQ(e.target.value)} />
+            <Input placeholder="Tìm nhanh theo email hoặc vai trò..." value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
         </div>
       </CardHeader>
@@ -99,7 +99,7 @@ function UsersList() {
         ) : error ? (
           <div className="p-4 rounded-lg bg-red-50 text-red-700 border border-red-200">{error}</div>
         ) : filtered.length === 0 ? (
-          <div className="p-6 text-center text-slate-500">Chưa có người dùng nào.</div>
+          <div className="p-6 text-center text-slate-500">Chưa có thành viên nào trong công ty.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -153,8 +153,8 @@ function UsersList() {
                       <td className="py-3 pr-4 text-slate-500">{new Date(u.created_at).toLocaleString()}</td>
                       <td className="py-3 pr-0">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => setEditing(u)}>Cập nhật vai trò</Button>
-                        <Button variant="outline" size="sm" onClick={() => setConfirm(u)}>Xóa khỏi công ty</Button>
+                        <Button variant="secondary" size="sm" onClick={() => setEditing(u)}>Sửa quyền</Button>
+                        <Button variant="outline" size="sm" onClick={() => setConfirm(u)}>Gỡ khỏi công ty</Button>
                       </div>
                       </td>
                     </tr>
@@ -168,10 +168,10 @@ function UsersList() {
 
       {/* Confirm remove */}
       <Dialog open={!!confirm} onClose={() => setConfirm(null)}>
-        <DialogHeader title="Xóa người dùng khỏi công ty" description="Người dùng sẽ bị gỡ khỏi công ty và chỉ còn vai trò 'user'." />
+  <DialogHeader title="Gỡ người dùng khỏi công ty" description="Thành viên sẽ bị xoá khỏi công ty và trở về quyền 'user'." />
         <DialogBody>
           <p>
-            Bạn có chắc chắn muốn gỡ <strong>{confirm?.email}</strong> khỏi công ty?
+            Bạn muốn gỡ <strong>{confirm?.email}</strong> khỏi công ty? Thao tác này có thể hoàn tác bằng cách mời lại.
           </p>
         </DialogBody>
         <DialogFooter>
@@ -192,7 +192,7 @@ function UsersList() {
             }}
             disabled={saving}
           >
-            {saving ? <Spinner /> : "Xác nhận"}
+            {saving ? <Spinner /> : "Đồng ý"}
           </Button>
         </DialogFooter>
       </Dialog>
@@ -223,15 +223,15 @@ function EditRolesDialog({ user, onClose, onSaved }: { user: CompanyUserOut | nu
     setRoles((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
   };
 
+  // Only allow editing analyst roles (data & product insight). company_admin is immutable here.
   const roleOptions: { value: string; label: string }[] = [
-    { value: "company_admin", label: "Company Administrator" },
     { value: "data_analyst", label: "Data Analyst" },
     { value: "product_insight_analyst", label: "Product Insight Analyst" },
   ];
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogHeader title="Cập nhật vai trò" description={user?.email} />
+  <DialogHeader title="Cập nhật quyền phân tích" description={user?.email} />
       <DialogBody>
         <div className="grid grid-cols-1 gap-2">
           {roleOptions.map((opt) => (
@@ -245,8 +245,14 @@ function EditRolesDialog({ user, onClose, onSaved }: { user: CompanyUserOut | nu
               <span className="text-sm font-medium text-slate-700">{opt.label}</span>
             </label>
           ))}
+          {user?.roles.includes("company_admin") && (
+            <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500">
+              <span className="inline-flex items-center rounded-full bg-indigo-600 text-white px-2 py-0.5 text-[10px] font-semibold">company_admin</span>
+              <span>Quyền quản trị không thể chỉnh tại đây.</span>
+            </div>
+          )}
         </div>
-        <p className="text-xs text-slate-500 mt-3">Lưu ý: Hệ thống sẽ ngăn chặn việc gỡ bỏ company_admin cuối cùng của công ty.</p>
+  <p className="text-xs text-slate-500 mt-3">Chỉ thêm hoặc bỏ hai quyền phân tích. Quyền quản trị (company_admin) cố định để đảm bảo an toàn.</p>
       </DialogBody>
       <DialogFooter>
         <Button variant="secondary" onClick={onClose}>Đóng</Button>
@@ -265,7 +271,7 @@ function EditRolesDialog({ user, onClose, onSaved }: { user: CompanyUserOut | nu
           }}
           disabled={saving}
         >
-          {saving ? <Spinner /> : "Lưu thay đổi"}
+          {saving ? <Spinner /> : "Lưu"}
         </Button>
       </DialogFooter>
     </Dialog>
@@ -280,8 +286,8 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
   const [error, setError] = useState<string | null>(null);
 
   const toggle = (r: string) => setRoles((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
+  // Only allow assigning analyst roles here (company_admin creation bị giới hạn UI)
   const roleOptions: { value: string; label: string }[] = [
-    { value: "company_admin", label: "Company Administrator" },
     { value: "data_analyst", label: "Data Analyst" },
     { value: "product_insight_analyst", label: "Product Insight Analyst" },
   ];
@@ -290,7 +296,7 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
     <div className="grid lg:grid-cols-2 gap-6">
       <Card className="relative">
         <CardHeader>
-          <CardTitle>Thêm người dùng mới</CardTitle>
+          <CardTitle>Thêm thành viên mới</CardTitle>
         </CardHeader>
         <CardContent>
           {error ? <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 border border-red-200">{error}</div> : null}
@@ -300,8 +306,8 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
               <Input type="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Mật khẩu tạm</label>
-              <Input type="text" placeholder="Tối thiểu 8 ký tự" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <label className="block text-sm text-slate-600 mb-1">Mật khẩu tạm (tự gửi cho thành viên)</label>
+              <Input type="text" placeholder="Ít nhất 8 ký tự" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
           </div>
         </CardContent>
@@ -309,7 +315,7 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Phân quyền</CardTitle>
+          <CardTitle>Chọn quyền phân tích</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-2">
@@ -320,6 +326,7 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
               </label>
             ))}
           </div>
+          <p className="mt-3 text-xs text-slate-500">Không thể cấp quyền quản trị tại đây. Chỉ chọn quyền phân tích cần thiết.</p>
           <div className="flex justify-end mt-6">
             <Button
               onClick={async () => {
@@ -336,7 +343,7 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
               }}
               disabled={saving || !email || !password}
             >
-              {saving ? <Spinner /> : "Tạo người dùng"}
+              {saving ? <Spinner /> : "Tạo thành viên"}
             </Button>
           </div>
         </CardContent>
